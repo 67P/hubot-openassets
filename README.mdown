@@ -1,0 +1,11 @@
+# hubot-openassets
+
+
+## Configuration
+
+* OA_DEFAULT_QUANTITY
+* OA_ASSET_ID
+* OA_SERVER_URL
+
+
+
