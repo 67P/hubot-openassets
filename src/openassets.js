@@ -1,41 +1,63 @@
+// Description:
+//  Manage a openassets wallet and send rewards to people
+//
+// Dependencies:
+//
+// Configuration:
+//
+// Author:
+//  Michael Bumann <hello@michaelbumann.com>
+
+
 module.exports = function(robot) {
-  robot.hear(/send (\d*)\s?kredits to (.+)/i, function(res) {
-    var recipient = res.match[1];
-    var destination = recipient; // TODO: lookup recipient address
-    var quantity = res.match[1];
+  function lookupAddressFor(ircName) {
+    ircName = ircName.replace(/\s*/,'').toLowerCase();
+    return {'bumi': 'akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H'}[ircName];
+  }
+
+  robot.hear(/send (\d*)\s?kredits to (.+)/i, function(hearResponse) {
+    var recipient = hearResponse.match[2];
+    var destination = lookupAddressFor(recipient);
+    var quantity = hearResponse.match[1];
     if(!quantity) { quantity = process.env.OA_DEFAULT_QUANTITY; }
 
-    log("sending " + quantity + " kredits to: " + recipient);
+    if(process.env.OA_MAX_QUANTITY && quantity > process.env.OA_MAX_QUANTITY) {
+      robot.logger.info("quantity exceeds maximum. ignoring");
+      hearResponse.reply("oh, that's a bit too much, isn't it?");
+      return false;
+    }
+
+    console.log("sending " + quantity + " kredits to: " + recipient);
 
     var params = {
       "to": destination,
       "asset_id": process.env.OA_ASSET_ID,
       "quantity": quantity
     };
-    log(params);
+    console.log(params);
 
-
-    robot.http(process.env.OA_SERVER_URL)
+    robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
-      .post(data)(function(err, res, body) {
-        if(res.statusCode != 200) {
-          res.send "damn, something is wrong with the asset server :("
-          return
+      .post(params)(function(err, res, body) {
+        if(err || res.statusCode != 200) {
+          hearResponse.send("damn, something is wrong with the asset server :(")
+          return false;
         }
         var balanceUrl = 'https://api.coinprism.com/v1/addresses/' + destination;
         robot.http(balanceUrl)
           .header('Content-Type', 'application/json')
           .get()(function(err, res, body) {
-            var assets = body['assets'];
-            var assetDetails = assets.filter(function(details) { details['id'] === process.env.OA_ASSET_ID });
-              unconfirmedBalance = assetDetails['unconfirmed_balance'];
+            var addressData = JSON.parse(body);
+            var response = 'OK, kredited';
+            if(!err && res.statusCode === 200) {
+              var assets = addressData['assets'];
+              var assetDetails = assets.filter(function(details) { return details['id'] === process.env.OA_ASSET_ID })[0];
+              console.log(assetDetails);
+              if(assetDetails) {
+                response = response + ' - ' + recipient + ' has ' + assetDetails['unconfirmed_balance'] + ' kredits';
+              }
             }
-
-            var response = 'kredited';
-            if(assetDetails) {
-              response = response + ' ' + recipient + ' has ' + assetDetails['unconfirmed_balance'] + ' kredits';
-            }
-            res.reply(response);
+            hearResponse.reply(response);
           });
       });
 
