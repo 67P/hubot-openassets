@@ -3,9 +3,11 @@
 
 ## Configuration
 
-* OA_DEFAULT_QUANTITY
-* OA_ASSET_ID
-* OA_SERVER_URL
-
-
+* OA_ASSET_FROM_ADDRESS: sender's wallet open asset address
+* OA_DEFAULT_QUANTITY: qunatity of assets that should be sent if not provided by the user
+* OA_ASSET_ID: ID of the asset to be transferred
+* OA_SERVER_URL: URL of the open assets server that does the actual transfer
+* OA_SERVER_USERNAME: username for server basic auth
+* OA_SERVER_PASSWORD: password for server basic auth
+* OA_MAX_QUANTITY (optional): maximum quantity of assets that can be transferred
 
