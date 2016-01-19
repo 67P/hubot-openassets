@@ -4,6 +4,9 @@ GEM
     bitcoin-ruby (0.0.7)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
+    dotenv (1.0.2)
+    dotenv-rails (1.0.2)
+      dotenv (= 1.0.2)
     ffi (1.9.10)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
@@ -33,5 +36,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv-rails
   openassets-ruby
   sinatra
