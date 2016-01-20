@@ -1,19 +1,27 @@
 // Description:
-//  Manage a openassets wallet and send rewards to people
+//   Manage a openassets wallet and send rewards to people
 //
 // Configuration:
 //
-// OA_ASSET_FROM_ADDRESS: sender's wallet open asset address
-// OA_DEFAULT_QUANTITY: qunatity of assets that should be sent if not provided by the user
-// OA_ASSET_ID: ID of the asset to be transferred
-// OA_SERVER_URL: URL of the open assets server that does the actual transfer
-// OA_SERVER_USERNAME: username for server basic auth
-// OA_SERVER_PASSWORD: password for server basic auth
-// OA_MAX_QUANTITY (optional): maximum quantity of assets that can be transferred
+//   OA_ASSET_FROM_ADDRESS: sender's wallet open asset address
+//   OA_DEFAULT_QUANTITY: qunatity of assets that should be sent if not provided by the user
+//   OA_ASSET_ID: ID of the asset to be transferred
+//   OA_SERVER_URL: URL of the open assets server that does the actual transfer
+//   OA_SERVER_USERNAME: username for server basic auth
+//   OA_SERVER_PASSWORD: password for server basic auth
+//   OA_MAX_QUANTITY (optional): maximum quantity of assets that can be transferred
 //
+// Commands:
+//   kredits address add <nick> <address> - Add an Open Assets address for a user
+//   kredits address delete <nick> - Delete a user's addressbook entry
+//   kredits address list - List all addressbook entries
+//   kredits show <nick> - Show kredit balance of a user
+//   kredits send <amount> to <nick> - Send kredits to a user
+//   kredits list - Show list of all kredit holders
 //
-// Author:
-//  Michael Bumann <hello@michaelbumann.com>
+// Authors:
+//   Michael Bumann <hello@michaelbumann.com>
+//   Sebastian Kippe <sebastian@kip.pe>
 
 module.exports = function(robot) {
 
