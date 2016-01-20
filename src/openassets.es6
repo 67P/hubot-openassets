@@ -13,8 +13,8 @@
 //
 // Commands:
 //   kredits address add <nick> <address> - Add an Open Assets address for a user
-//   kredits address delete <nick> - Delete a user's addressbook entry
-//   kredits address list - List all addressbook entries
+//   kredits address remove <nick> - Delete a user's addressBook entry
+//   kredits address list - List all addressBook entries
 //   kredits show <nick> - Show kredit balance of a user
 //   kredits send <amount> to <nick> - Send kredits to a user
 //   kredits list - Show list of all kredit holders
@@ -23,62 +23,73 @@
 //   Michael Bumann <hello@michaelbumann.com>
 //   Sebastian Kippe <sebastian@kip.pe>
 
-console.log('hallo');
 module.exports = function(robot) {
 
   //
   // Address Book
   //
 
-  function lookupAddressFor(ircName) {
-    ircName = ircName.replace(/\s*/,'').toLowerCase();
-    return {'bumi': 'akCseA2PCgqn8JYAmdFBKzaAQpxJiQ1bECc'}[ircName];
-  }
-  function lookupNameFor(address) {
-    return {'akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H': 'bumi'}[address];
-  }
-
   let addressBook = {
 
     getContent() {
-      return robot.brain.get('openassets:addressbook:kredits') || {};
+      return robot.brain.get('openassets:addressBook:kredits') || {};
     },
 
     setContent(content) {
-      return robot.brain.set('openassets:addressbook:kredits', content);
+      return robot.brain.set('openassets:addressBook:kredits', content);
     },
 
     add(nick, address) {
       if (typeof nick !== 'string' || typeof address !== 'string') {
-        return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressbook entry.';
+        return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressBook entry.';
       }
-
+      let content = this.getContent();
+      content[nick] = address;
+      this.setContent(content);
+      return `Added ${nick}'s address to the addressBook.`;
     },
 
     remove(nick) {
       if (typeof nick !== 'string') {
         return 'If you want me to delete someone\'s kredits address, how about you give me their name?';
       }
-
+      let content = this.getContent();
+      delete content[nick];
+      this.setContent(content);
+      return `Removed ${nick}'s entry from the addressBook.`;
     },
 
     list() {
       if (Object.keys(this.getContent()).length === 0) {
-        return 'No entries in addressbook yet. Use "kredits address add [name] [address]" to add one.';
+        return 'No entries in addressBook yet. Use "kredits address add [name] [address]" to add one.';
       } else {
-        return this.getContent();
+        let content = this.getContent();
+        let names = Object.keys(content);
+        return names.map(name => `${name}: ${content[name]}`);
       }
+    },
+
+    lookupAddress(nick) {
+      return this.getContent()[nick];
+    },
+
+    lookupName(address) {
+      let content = this.getContent();
+      Object.keys(content).forEach(name => {
+        if (content[name] === address) { return name; }
+      });
     }
   };
 
-  robot.hear(/kredits address (add|delete|list)\s*(\w*)\s*(\w*)/i, function(res) {
+  robot.hear(/kredits address (add|remove|list)\s*(\w*)\s*(\w*)/i, function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
+    let user    = res.message.user;
     let out;
     // console.log(`command: ${command}, nick: ${nick}, address: ${address}`);
 
-    if (!robot.auth.isAdmin(res.user.name)) {
+    if (!robot.auth.isAdmin(user)) {
       res.reply('Sorry amigo, you\'re not authorized to manage the Kredits address book.');
       return;
     }
@@ -121,7 +132,7 @@ module.exports = function(robot) {
   }
 
   function balanceOf(ircName, cb) {
-    return balanceOfAddress(lookupAddressFor(ircName), cb);
+    return balanceOfAddress(addressBook.lookupAddress(ircName), cb);
   }
 
   function totalBalanceOfAsset(assetDetails) {
@@ -130,7 +141,7 @@ module.exports = function(robot) {
 
   robot.hear(/kredits show (.+)/i, function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
-      if(assetDetails) {
+      if (assetDetails) {
         hearResponse.reply( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' kredits');
       } else {
         hearResponse.reply('not found');
@@ -140,16 +151,19 @@ module.exports = function(robot) {
 
   robot.hear(/kredits list/i, function(hearResponse) {
     var assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
+    console.log(assetUrl);
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
-        if (err || res.statusCode != 200) {
+        if (err || res.statusCode !== 200) {
           console.log(err);
           return false;
         }
         var owners = JSON.parse(body).owners;
+        console.log(owners);
         var total = owners.length > 10 ? 10 : owners.length;
         for (var i=0; i<total; i++) {
-          var name = lookupNameFor(owners[i].address) || owners[i].address;
+          var name = addressBook.lookupName(owners[i].address) || owners[i].address;
+          console.log(name);
           hearResponse.reply(name + ': ' + owners[i].asset_quantity + ' Kredits');
         }
       });
@@ -157,7 +171,7 @@ module.exports = function(robot) {
 
   robot.hear(/kredits send (\d*)\s?to (.+)/i, function(hearResponse) {
     var recipient = hearResponse.match[2];
-    var destination = lookupAddressFor(recipient);
+    var destination = addressBook.lookupAddress(recipient);
     var quantity = hearResponse.match[1];
     if(!quantity) { quantity = process.env.OA_DEFAULT_QUANTITY; }
 

@@ -6,5 +6,3 @@ require("babel/register")({
 module.exports = function(robot) {
   require("./src/openassets")(robot);
 };
-
-console.log('loaded openassets');
