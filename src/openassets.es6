@@ -87,7 +87,6 @@ module.exports = function(robot) {
     let address = res.match[3];
     let user    = res.message.user;
     let out;
-    // console.log(`command: ${command}, nick: ${nick}, address: ${address}`);
 
     if (!robot.auth.isAdmin(user)) {
       res.reply('Sorry amigo, you\'re not authorized to manage the Kredits address book.');
@@ -189,7 +188,6 @@ module.exports = function(robot) {
 
   robot.hear(/kredits send (\d*)\s?to (.+)/i, function(hearResponse) {
     let user = hearResponse.message.user;
-    console.log(user);
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
       return;
