@@ -15,8 +15,12 @@
 // Author:
 //  Michael Bumann <hello@michaelbumann.com>
 
-
 module.exports = function(robot) {
+
+  //
+  // Address Book
+  //
+
   function lookupAddressFor(ircName) {
     ircName = ircName.replace(/\s*/,'').toLowerCase();
     return {'bumi': 'akCseA2PCgqn8JYAmdFBKzaAQpxJiQ1bECc'}[ircName];
@@ -25,35 +29,105 @@ module.exports = function(robot) {
     return {'akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H': 'bumi'}[address];
   }
 
+  let addressBook = {
+
+    getContent() {
+      return robot.brain.get('openassets:addressbook:kredits') || {};
+    },
+
+    setContent(content) {
+      return robot.brain.set('openassets:addressbook:kredits', content);
+    },
+
+    add(nick, address) {
+      if (typeof nick !== 'string' || typeof address !== 'string') {
+        return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressbook entry.';
+      }
+
+    },
+
+    remove(nick) {
+      if (typeof nick !== 'string') {
+        return 'If you want me to delete someone\'s kredits address, how about you give me their name?';
+      }
+
+    },
+
+    list() {
+      if (Object.keys(this.getContent()).length === 0) {
+        return 'No entries in addressbook yet. Use "kredits address add [name] [address]" to add one.';
+      } else {
+        return this.getContent();
+      }
+    }
+  };
+
+  robot.hear(/kredits address (add|delete|list)\s*(\w*)\s*(\w*)/i, function(res) {
+    let command = res.match[1];
+    let nick    = res.match[2];
+    let address = res.match[3];
+    let out;
+    // console.log(`command: ${command}, nick: ${nick}, address: ${address}`);
+
+    if (!robot.auth.isAdmin(res.user.name)) {
+      res.reply('Sorry amigo, you\'re not authorized to manage the Kredits address book.');
+      return;
+    }
+
+    switch(command) {
+      case 'add':
+        out = addressBook.add(nick, address);
+        break;
+      case 'delete':
+        out = addressBook.remove(nick);
+        break;
+      case 'list':
+        out = addressBook.list();
+        break;
+    }
+
+    if (typeof out === 'string') {
+      res.send(out);
+    } else if (typeof out === 'object') {
+      out.forEach(line => res.send(line));
+    }
+  });
+
+  //
+  // Assets listing and management
+  //
+
   function balanceOfAddress(address, cb) {
     var balanceUrl = 'https://api.coinprism.com/v1/addresses/' + address;
     console.log(balanceUrl);
     robot.http(balanceUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
-        if(!err && res.statusCode === 200) {
-          var assets = JSON.parse(body)['assets'];
-          var assetDetails = assets.filter(function(details) { return details['id'] === process.env.OA_ASSET_ID })[0];
+        if (!err && res.statusCode === 200) {
+          var assets = JSON.parse(body).assets;
+          var assetDetails = assets.filter(function(details) { return details.id === process.env.OA_ASSET_ID; })[0];
           cb(assetDetails, err, res, body);
-        } else{
+        } else {
           cb(null, err, res, body);
         }
       });
   }
+
   function balanceOf(ircName, cb) {
     return balanceOfAddress(lookupAddressFor(ircName), cb);
   }
 
   function totalBalanceOfAsset(assetDetails) {
-    return parseInt(assetDetails['balance']) + parseInt(assetDetails['unconfirmed_balance']);
+    return parseInt(assetDetails.balance) + parseInt(assetDetails.unconfirmed_balance);
   }
 
   robot.hear(/kredits show (.+)/i, function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if(assetDetails) {
         hearResponse.reply( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' kredits');
-      } else
+      } else {
         hearResponse.reply('not found');
-    })
+      }
+    });
   });
 
   robot.hear(/kredits list/i, function(hearResponse) {
@@ -61,15 +135,15 @@ module.exports = function(robot) {
     console.log(assetUrl);
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
-        if(!err && res.statusCode === 200) {
-          var owners = JSON.parse(body)['owners'];
+        if (!err && res.statusCode === 200) {
+          var owners = JSON.parse(body).owners;
           var total = owners.length > 10 ? 10 : owners.length;
-          for(i=0; i++; i<total) {
-            var name = lookupNameFor(owners[i]['address']) || owners[i]['address'];
-            hearResponse.reply(name + ': ' + owners[i]['asset_quantity'] + ' Kredits');
+          for (var i=0; i++; i<total) {
+            var name = lookupNameFor(owners[i].address) || owners[i].address;
+            hearResponse.reply(name + ': ' + owners[i].asset_quantity + ' Kredits');
           }
         }
-      })
+      });
   });
 
   robot.hear(/kredits send (\d*)\s?to (.+)/i, function(hearResponse) {
@@ -96,14 +170,13 @@ module.exports = function(robot) {
     robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
       .req.auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
-      .post(params)(function(err, res, body) {
-        if(err || res.statusCode != 200) {
-          hearResponse.send("damn, something is wrong with the asset server :(")
+      .post(params)(function(err, res) {
+        if(err || res.statusCode !== 200) {
+          hearResponse.send("damn, something is wrong with the asset server :(");
           return false;
         }
         hearResponse.reply('OK, kredited');
       });
   });
 
-}
-
+};
