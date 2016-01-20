@@ -11,7 +11,8 @@
     "hubot-script"
   ],
   "authors": [
-    "Michael Bumann <hello@michaelbumann.com>"
+    "Michael Bumann <hello@michaelbumann.com>",
+    "Sebastian Kippe <sebastian@kip.pe>"
   ],
   "license": "MIT",
   "repository": "https://github.com/67P/hubot-kosmos-kredits",
