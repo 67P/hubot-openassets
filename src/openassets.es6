@@ -23,6 +23,7 @@
 //   Michael Bumann <hello@michaelbumann.com>
 //   Sebastian Kippe <sebastian@kip.pe>
 
+console.log('hallo');
 module.exports = function(robot) {
 
   //
@@ -107,7 +108,6 @@ module.exports = function(robot) {
 
   function balanceOfAddress(address, cb) {
     var balanceUrl = 'https://api.coinprism.com/v1/addresses/' + address;
-    console.log(balanceUrl);
     robot.http(balanceUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
         if (!err && res.statusCode === 200) {
@@ -140,16 +140,17 @@ module.exports = function(robot) {
 
   robot.hear(/kredits list/i, function(hearResponse) {
     var assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
-    console.log(assetUrl);
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
-        if (!err && res.statusCode === 200) {
-          var owners = JSON.parse(body).owners;
-          var total = owners.length > 10 ? 10 : owners.length;
-          for (var i=0; i++; i<total) {
-            var name = lookupNameFor(owners[i].address) || owners[i].address;
-            hearResponse.reply(name + ': ' + owners[i].asset_quantity + ' Kredits');
-          }
+        if (err || res.statusCode != 200) {
+          console.log(err);
+          return false;
+        }
+        var owners = JSON.parse(body).owners;
+        var total = owners.length > 10 ? 10 : owners.length;
+        for (var i=0; i<total; i++) {
+          var name = lookupNameFor(owners[i].address) || owners[i].address;
+          hearResponse.reply(name + ': ' + owners[i].asset_quantity + ' Kredits');
         }
       });
   });
