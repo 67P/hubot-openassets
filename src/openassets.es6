@@ -215,7 +215,7 @@ module.exports = function(robot) {
         hearResponse.send("damn, something is wrong with the asset server.");
         return false;
       }
-			var tx = JSON.parse(body);
+      var tx = JSON.parse(body);
       hearResponse.reply('OK, kredited (' + tx.hash + ')');
     });
 
