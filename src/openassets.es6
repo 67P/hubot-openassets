@@ -186,7 +186,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(/kredits send (\d*)\s?to (.+)/i, function(hearResponse) {
+  robot.hear(/kredits send (\d*)\s?to (\w+).*/i, function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
