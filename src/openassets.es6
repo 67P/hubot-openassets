@@ -181,6 +181,7 @@ module.exports = function(robot) {
     sendKredits(destination, quantity, function(err, res, body) {
       if (err || res.statusCode !== 200) {
         console.log(err);
+        console.log(body);        
       }
     });
 
@@ -212,7 +213,10 @@ module.exports = function(robot) {
 
     sendKredits(destination, quantity, function(err, res, body) {
       if(err || res.statusCode !== 200) {
-        hearResponse.send("damn, something is wrong with the asset server.");
+        console.log(err);
+        console.log(body);
+        var error = JSON.parse(body);
+        hearResponse.send("damn, something is wrong with the asset server: " + error.message);
         return false;
       }
       var tx = JSON.parse(body);
