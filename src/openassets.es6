@@ -13,8 +13,8 @@
 //
 // Commands:
 //   kredits address add <nick> <address> - Add an Open Assets address for a user
-//   kredits address remove <nick> - Delete a user's addressBook entry
-//   kredits address list - List all addressBook entries
+//   kredits address remove <nick> - Delete a user's addressbook entry
+//   kredits address list - List all addressbook entries
 //   kredits show <nick> - Show kredit balance of a user
 //   kredits send <amount> to <nick> - Send kredits to a user
 //   kredits list - Show list of all kredit holders
@@ -41,12 +41,12 @@ module.exports = function(robot) {
 
     add(nick, address) {
       if (typeof nick !== 'string' || typeof address !== 'string') {
-        return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressBook entry.';
+        return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressbook entry.';
       }
       let content = this.getContent();
       content[nick] = address;
       this.setContent(content);
-      return `Added ${nick}'s address to the addressBook.`;
+      return `Added ${nick}'s address to the addressbook.`;
     },
 
     remove(nick) {
@@ -56,12 +56,12 @@ module.exports = function(robot) {
       let content = this.getContent();
       delete content[nick];
       this.setContent(content);
-      return `Removed ${nick}'s entry from the addressBook.`;
+      return `Removed ${nick}'s entry from the addressbook.`;
     },
 
     list() {
       if (Object.keys(this.getContent()).length === 0) {
-        return 'No entries in addressBook yet. Use "kredits address add [name] [address]" to add one.';
+        return 'No entries in addressbook yet. Use "kredits address add [name] [address]" to add one.';
       } else {
         let content = this.getContent();
         let names = Object.keys(content);
