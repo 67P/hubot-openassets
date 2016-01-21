@@ -215,7 +215,8 @@ module.exports = function(robot) {
         hearResponse.send("damn, something is wrong with the asset server.");
         return false;
       }
-      hearResponse.reply('OK, kredited');
+			var tx = JSON.parse(body);
+      hearResponse.reply('OK, kredited (' + tx.hash + ')');
     });
 
   });
