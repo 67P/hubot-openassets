@@ -142,7 +142,7 @@ module.exports = function(robot) {
   robot.hear(/kredits show (.+)/i, function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
-        hearResponse.reply( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' kredits');
+        hearResponse.send( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' kredits');
       } else {
         hearResponse.reply('not found');
       }
@@ -151,7 +151,6 @@ module.exports = function(robot) {
 
   robot.hear(/kredits list/i, function(hearResponse) {
     var assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
-    console.log(assetUrl);
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
         if (err || res.statusCode !== 200) {
@@ -159,19 +158,49 @@ module.exports = function(robot) {
           return false;
         }
         var owners = JSON.parse(body).owners;
-        console.log(owners);
         var total = owners.length > 10 ? 10 : owners.length;
         for (var i=0; i<total; i++) {
           var name = addressBook.lookupName(owners[i].address) || owners[i].address;
-          console.log(name);
-          hearResponse.reply(name + ': ' + owners[i].asset_quantity + ' Kredits');
+          hearResponse.send(name + ': ' + owners[i].asset_quantity);
         }
       });
   });
 
+  robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
+    let user = hearResponse.message.user;
+    if (!robot.auth.isAdmin(user)) {
+      hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
+      return;
+    }
+
+    var recipient = hearResponse.match[1];
+    var destination = addressBook.lookupAddress(recipient);
+    if(!destination) { return false; }
+
+    var quantity = process.env.OA_DEFAULT_QUANTITY;
+
+    sendKredits(destination, quantity, function(err, res, body) {
+      if (err || res.statusCode !== 200) {
+        console.log(err);
+      }
+    });
+
+  });
+
   robot.hear(/kredits send (\d*)\s?to (.+)/i, function(hearResponse) {
+    let user = hearResponse.message.user;
+    console.log(user);
+    if (!robot.auth.isAdmin(user)) {
+      hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
+      return;
+    }
+
     var recipient = hearResponse.match[2];
     var destination = addressBook.lookupAddress(recipient);
+    if(!destination) {
+      hearResponse.reply("sorry, I don't know the address of " + recipient);
+      return false;
+    }
     var quantity = hearResponse.match[1];
     if(!quantity) { quantity = process.env.OA_DEFAULT_QUANTITY; }
 
@@ -183,23 +212,30 @@ module.exports = function(robot) {
 
     console.log("sending " + quantity + " kredits to: " + recipient);
 
+    sendKredits(destination, quantity, function(err, res, body) {
+      if(err || res.statusCode !== 200) {
+        hearResponse.send("damn, something is wrong with the asset server.");
+        return false;
+      }
+      hearResponse.reply('OK, kredited');
+    });
+
+  });
+
+  function sendKredits(destination, quantity, cb) {
+    console.log("sending " + quantity + " kredits to: " + destination);
+
     var params = {
       "from": process.env.OA_ASSET_FROM_ADDRESS,
       "to": destination,
       "asset_id": process.env.OA_ASSET_ID,
-      "quantity": quantity
+      "amount": quantity
     };
-
+    
+    console.log(params);
     robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
-      .req.auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
-      .post(params)(function(err, res) {
-        if(err || res.statusCode !== 200) {
-          hearResponse.send("damn, something is wrong with the asset server :(");
-          return false;
-        }
-        hearResponse.reply('OK, kredited');
-      });
-  });
-
+      .auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
+      .query(params).post()(cb) 
+  }
 };
