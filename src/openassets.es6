@@ -97,7 +97,7 @@ module.exports = function(robot) {
       case 'add':
         out = addressBook.add(nick, address);
         break;
-      case 'delete':
+      case 'remove':
         out = addressBook.remove(nick);
         break;
       case 'list':
