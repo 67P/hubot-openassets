@@ -1,7 +1,7 @@
 {
-  "name": "hubot-kosmos-kredits",
-  "version": "0.2.2",
-  "description": "Hubot scripts for managing Kosmos Kredits",
+  "name": "hubot-openassets",
+  "version": "0.3.0",
+  "description": "Hubot script for managing and sending assets based on the Open Assets protocol",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,8 +15,12 @@
     "Sebastian Kippe <sebastian@kip.pe>"
   ],
   "license": "MIT",
-  "repository": "https://github.com/67P/hubot-kosmos-kredits",
+  "repository": "https://github.com/67P/hubot-openassets",
+  "engines": {
+    "node": ">=4.0.0",
+    "npm": ">=3.0.0"
+  },
   "dependencies": {
-    "babel": "^5.6.14"
+    "strict-mode": "^0.4.2"
   }
 }

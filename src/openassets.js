@@ -235,11 +235,11 @@ module.exports = function(robot) {
       "asset_id": process.env.OA_ASSET_ID,
       "amount": quantity
     };
-    
+
     console.log(params);
     robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
       .auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
-      .query(params).post()(cb) 
+      .query(params).post()(cb);
   }
 };
