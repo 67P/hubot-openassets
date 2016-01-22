@@ -83,7 +83,7 @@ module.exports = function(robot) {
     }
   };
 
-  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\s*(\w*)\s*(\w*)`, 'i'), function(res) {
+  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*(\\w*)\\s*(\\w*)`, 'i'), function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
@@ -182,13 +182,13 @@ module.exports = function(robot) {
     sendKredits(destination, quantity, function(err, res, body) {
       if (err || res.statusCode !== 200) {
         console.log(err);
-        console.log(body);        
+        console.log(body);
       }
     });
 
   });
 
-  robot.hear(new RegExp(`${robotKeyword} send (\d*)\s?to (\w+).*`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\s?to (\\w+).*`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
