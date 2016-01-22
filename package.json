@@ -1,6 +1,6 @@
 {
   "name": "hubot-openassets",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Hubot script for managing and sending assets based on the Open Assets protocol",
   "main": "index.js",
   "scripts": {
