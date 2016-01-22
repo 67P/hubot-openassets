@@ -240,6 +240,13 @@ module.exports = function(robot) {
     robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
       .auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
-      .query(params).post()(cb);
+      .query(params).post()(function(err, res, body) {
+        if(err || res.statusCode !== 200) {
+          console.log("sending assets failed");
+        }
+        console.log(body);
+
+        cb(err, res, body);
+      });
   }
 };
