@@ -29,14 +29,16 @@ module.exports = function(robot) {
   // Address Book
   //
 
+  let robotKeyword = process.env.OA_BOT_KEYWORD || 'kredits';
+
   let addressBook = {
 
     getContent() {
-      return robot.brain.get('openassets:addressBook:kredits') || {};
+      return robot.brain.get(`openassets:addressBook:${robotKeyword}`) || {};
     },
 
     setContent(content) {
-      return robot.brain.set('openassets:addressBook:kredits', content);
+      return robot.brain.set(`openassets:addressBook:${robotKeyword}`, content);
     },
 
     add(nick, address) {
@@ -51,7 +53,7 @@ module.exports = function(robot) {
 
     remove(nick) {
       if (typeof nick !== 'string') {
-        return 'If you want me to delete someone\'s kredits address, how about you give me their name?';
+        return 'If you want me to delete someone\'s address, how about you give me their name?';
       }
       let content = this.getContent();
       delete content[nick];
@@ -61,7 +63,7 @@ module.exports = function(robot) {
 
     list() {
       if (Object.keys(this.getContent()).length === 0) {
-        return 'No entries in addressbook yet. Use "kredits address add [name] [address]" to add one.';
+        return `No entries in addressbook yet. Use "${robotKeyword} address add [name] [address]" to add one.`;
       } else {
         let content = this.getContent();
         let names = Object.keys(content);
@@ -81,7 +83,7 @@ module.exports = function(robot) {
     }
   };
 
-  robot.hear(/kredits address (add|remove|list)\s*(\w*)\s*(\w*)/i, function(res) {
+  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\s*(\w*)\s*(\w*)`, 'i'), function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
@@ -89,7 +91,7 @@ module.exports = function(robot) {
     let out;
 
     if (!robot.auth.isAdmin(user)) {
-      res.reply('Sorry amigo, you\'re not authorized to manage the Kredits address book.');
+      res.reply('Sorry amigo, you\'re not authorized to manage the address book.');
       return;
     }
 
@@ -138,17 +140,17 @@ module.exports = function(robot) {
     return parseInt(assetDetails.balance) + parseInt(assetDetails.unconfirmed_balance);
   }
 
-  robot.hear(/kredits show (.+)/i, function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} show (.+)`, 'i'), function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
-        hearResponse.send( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' kredits');
+        hearResponse.send( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' ' + robotKeyword);
       } else {
         hearResponse.reply('not found');
       }
     });
   });
 
-  robot.hear(/kredits list/i, function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} list`, 'i'), function(hearResponse) {
     var assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
@@ -168,7 +170,6 @@ module.exports = function(robot) {
   robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) {
-      hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
       return;
     }
 
@@ -187,7 +188,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(/kredits send (\d*)\s?to (\w+).*/i, function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} send (\d*)\s?to (\w+).*`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
@@ -209,7 +210,7 @@ module.exports = function(robot) {
       return false;
     }
 
-    console.log("sending " + quantity + " kredits to: " + recipient);
+    console.log("sending " + quantity + " to: " + recipient);
 
     sendKredits(destination, quantity, function(err, res, body) {
       if(err || res.statusCode !== 200) {
@@ -220,13 +221,13 @@ module.exports = function(robot) {
         return false;
       }
       var tx = JSON.parse(body);
-      hearResponse.reply('OK, kredited (' + tx.hash + ')');
+      hearResponse.reply('OK, done! (' + tx.hash + ')');
     });
 
   });
 
   function sendKredits(destination, quantity, cb) {
-    console.log("sending " + quantity + " kredits to: " + destination);
+    console.log("sending " + quantity + " to: " + destination);
 
     var params = {
       "from": process.env.OA_ASSET_FROM_ADDRESS,
