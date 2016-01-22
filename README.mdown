@@ -1,3 +1,19 @@
+# Hubot Open Assets
+
+A hubot script for managing and sending assets based on the [Open Assets protocol](https://github.com/OpenAssets/open-assets-protocol).
+Initially written for easily sending [Kosmos Kredits](https://www.coinprism.info/asset/AbDn6L2AUGnDreUuNkGFEqcxnsoUP4HCjm)
+to contributors of the [Kosmos](https://kosmos.org) open source project.
+
+The script contains addressbook functionality so you can send assets to a
+nickname instead of an address. For example, after adding an entry via `kredits
+addressbook add derbumi akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H` you can send
+kredits to that user using a simple `kredits send 100 to derbumi`.
+
+Listing/showing assets and balances works without an additional server. Sending
+kredits is done via a Ruby/Rack app called
+[openassets-sinatra](https://github.com/67P/openassets-sinatra), which is
+running together with [bitcoind](https://github.com/bitcoin/bitcoin) on a server.
+
 ## Configuration
 
 | Key | Description |
@@ -10,3 +26,15 @@
 | OA_SERVER_USERNAME | Username for server basic auth |
 | OA_SERVER_PASSWORD | Password for server basic auth |
 | OA_MAX_QUANTITY (optional) | Maximum quantity of assets that can be transferred |
+
+## Commands
+
+| Key | Description |
+| --- | ----------- |
+| <keyword> addressbook add <name> <address> | ... |
+| <keyword> addressbook delete <name> | ... |
+| <keyword> addressbook list | ... |
+| <keyword> show <name> | ... |
+| <keyword> list | ... |
+| <keyword> send [amount] to <name> | ... |
+| <name>++ | ... |
