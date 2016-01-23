@@ -177,13 +177,17 @@ module.exports = function(robot) {
           console.log(err);
           return false;
         }
-        var owners = JSON.parse(body).owners;
-        var total = owners.length > 10 ? 10 : owners.length;
-        for (var i=0; i<total; i++) {
+        var asset = JSON.parse(body);
+        var owners = asset.owners;
+        var displayTotal = owners.length > 10 ? 10 : owners.length;
+        var totalAssets = 0;
+        owners.forEach(function(o) { totalAssets += parseInt(o.asset_quantity); });
+        for (var i=0; i<displayTotal; i++) {
           var oaAddress = addressFromBitcoinAddress(owners[i].address);
           var name = addressBook.lookupName(oaAddress) || oaAddress;
           hearResponse.send(name + ': ' + owners[i].asset_quantity);
         }
+        hearResponse.send(`${totalAssets} ${robotKeyword} total, owned by ${owners.length} addresses. details: https://www.coinprism.info/asset/${process.env.OA_ASSET_ID}/owners`);
       });
   });
 
