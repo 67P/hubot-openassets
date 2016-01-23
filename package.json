@@ -21,6 +21,8 @@
     "npm": ">=3.0.0"
   },
   "dependencies": {
+    "bs58": "3.0.0",
+    "bufferput": "0.1.1",
     "strict-mode": "^0.4.2"
   }
 }

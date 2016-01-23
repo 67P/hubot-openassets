@@ -23,6 +23,10 @@
 //   Michael Bumann <hello@michaelbumann.com>
 //   Sebastian Kippe <sebastian@kip.pe>
 
+var Base58 = require('bs58');
+var Put = require('bufferput');
+var crypto = require('crypto');
+
 module.exports = function(robot) {
 
   //
@@ -77,9 +81,10 @@ module.exports = function(robot) {
 
     lookupName(address) {
       let content = this.getContent();
-      Object.keys(content).forEach(name => {
-        if (content[name] === address) { return name; }
-      });
+      let keys    = Object.keys(content);
+      for (var i = 0; i< keys.length; i++) {
+        if (content[keys[i]] === address) { return keys[i]; }
+      }
     }
   };
 
@@ -140,6 +145,20 @@ module.exports = function(robot) {
     return parseInt(assetDetails.balance) + parseInt(assetDetails.unconfirmed_balance);
   }
 
+  function addressFromBitcoinAddress(btcAddress) {
+    function sha256(data) {
+      return new Buffer(crypto.createHash('sha256').update(data).digest('binary'), 'binary');
+    }
+    var btcAddr = new Buffer(Base58.decode(btcAddress));
+    var btcBuff = new Put()
+                  .word8(19)
+                  .put(btcAddr.slice(0, -4))
+    var btcCheck = sha256(sha256(btcBuff.buffer()));
+    btcBuff.put(btcCheck.slice(0,4))
+
+    return Base58.encode(btcBuff.buffer());
+  }
+
   robot.hear(new RegExp(`${robotKeyword} show (.+)`, 'i'), function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
@@ -161,7 +180,8 @@ module.exports = function(robot) {
         var owners = JSON.parse(body).owners;
         var total = owners.length > 10 ? 10 : owners.length;
         for (var i=0; i<total; i++) {
-          var name = addressBook.lookupName(owners[i].address) || owners[i].address;
+          var oaAddress = addressFromBitcoinAddress(owners[i].address);
+          var name = addressBook.lookupName(oaAddress) || oaAddress;
           hearResponse.send(name + ': ' + owners[i].asset_quantity);
         }
       });
