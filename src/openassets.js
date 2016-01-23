@@ -46,7 +46,7 @@ module.exports = function(robot) {
     },
 
     add(nick, address) {
-      if (typeof nick !== 'string' || typeof address !== 'string') {
+      if (typeof nick !== 'string' || typeof address !== 'string' || nick === '' || address === '' ) {
         return 'Sorry Dave, I can\'t do that. Need both a nickname and address to add an addressbook entry.';
       }
       let content = this.getContent();
@@ -56,7 +56,7 @@ module.exports = function(robot) {
     },
 
     remove(nick) {
-      if (typeof nick !== 'string') {
+      if (typeof nick !== 'string' || nick === '') {
         return 'If you want me to delete someone\'s address, how about you give me their name?';
       }
       let content = this.getContent();
@@ -88,7 +88,7 @@ module.exports = function(robot) {
     }
   };
 
-  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*(\\w*)\\s*(\\w*)`, 'i'), function(res) {
+  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*(\\.*)\\s*(\\.*)`, 'i'), function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
