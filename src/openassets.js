@@ -212,7 +212,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\s?to (\\w+).*`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\w+).*`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
@@ -245,7 +245,7 @@ module.exports = function(robot) {
         return false;
       }
       var tx = JSON.parse(body);
-      hearResponse.reply('OK, done! (' + tx.hash + ')');
+      hearResponse.reply(`OK, done! (transaction should be propagated in a bit: https://www.coinprism.info/tx/${tx.hash} )`);
     });
 
   });
