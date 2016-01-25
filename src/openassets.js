@@ -88,7 +88,7 @@ module.exports = function(robot) {
     }
   };
 
-  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*(\\.*)\\s*(\\.*)`, 'i'), function(res) {
+  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*([a-zA-Z0-9_\-]*)\\s*([a-zA-Z0-9_\-]*)`, 'i'), function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
