@@ -5,7 +5,8 @@
     "require",
     "process",
     "module",
-    "exports"
+    "exports",
+    "Buffer"
   ],
   "browser": false,
   "boss": true,

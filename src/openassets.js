@@ -123,13 +123,18 @@ module.exports = function(robot) {
   // Assets listing and management
   //
 
+  function sha256(data) {
+    return new Buffer(crypto.createHash('sha256').update(data).digest('binary'), 'binary');
+  }
+
   function balanceOfAddress(address, cb) {
-    var balanceUrl = 'https://api.coinprism.com/v1/addresses/' + address;
+    let balanceUrl = 'https://api.coinprism.com/v1/addresses/' + address;
+
     robot.http(balanceUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
         if (!err && res.statusCode === 200) {
-          var assets = JSON.parse(body).assets;
-          var assetDetails = assets.filter(function(details) { return details.id === process.env.OA_ASSET_ID; })[0];
+          let assets = JSON.parse(body).assets;
+          let assetDetails = assets.filter(function(details) { return details.id === process.env.OA_ASSET_ID; })[0];
           cb(assetDetails, err, res, body);
         } else {
           cb(null, err, res, body);
@@ -146,15 +151,11 @@ module.exports = function(robot) {
   }
 
   function addressFromBitcoinAddress(btcAddress) {
-    function sha256(data) {
-      return new Buffer(crypto.createHash('sha256').update(data).digest('binary'), 'binary');
-    }
-    var btcAddr = new Buffer(Base58.decode(btcAddress));
-    var btcBuff = new Put()
-                  .word8(19)
-                  .put(btcAddr.slice(0, -4))
-    var btcCheck = sha256(sha256(btcBuff.buffer()));
-    btcBuff.put(btcCheck.slice(0,4))
+    let btcAddr = new Buffer(Base58.decode(btcAddress));
+    let btcBuff = new Put().word8(19).put(btcAddr.slice(0, -4));
+    let btcCheck = sha256(sha256(btcBuff.buffer()));
+
+    btcBuff.put(btcCheck.slice(0,4));
 
     return Base58.encode(btcBuff.buffer());
   }
@@ -162,7 +163,8 @@ module.exports = function(robot) {
   robot.hear(new RegExp(`${robotKeyword} show (.+)`, 'i'), function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
-        hearResponse.send( hearResponse.match[1] + ' has ' + totalBalanceOfAsset(assetDetails) + ' ' + robotKeyword);
+        let msg = `${hearResponse.match[1]} has ${totalBalanceOfAsset(assetDetails)} ${robotKeyword}`;
+        hearResponse.send(msg);
       } else {
         hearResponse.reply('not found');
       }
@@ -170,38 +172,58 @@ module.exports = function(robot) {
   });
 
   robot.hear(new RegExp(`${robotKeyword} list`, 'i'), function(hearResponse) {
-    var assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
+    let assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
+
     robot.http(assetUrl).header('Content-Type', 'application/json')
       .get()(function(err, res, body) {
         if (err || res.statusCode !== 200) {
           console.log(err);
           return false;
         }
-        var asset = JSON.parse(body);
-        var owners = asset.owners;
-        var displayTotal = owners.length > 10 ? 10 : owners.length;
-        var totalAssets = 0;
-        owners.forEach(function(o) { totalAssets += parseInt(o.asset_quantity); });
+
+        let asset = JSON.parse(body);
+        let owners = asset.owners;
+        let displayTotal = owners.length > 10 ? 10 : owners.length;
+        let totalAssets = 0;
+
+        owners.forEach(owner => {
+          totalAssets += parseInt(owner.asset_quantity);
+
+          owner.assetAddress = addressFromBitcoinAddress(owner.address);
+          owner.name         = addressBook.lookupName(owner.assetAddress) ||
+                               owner.assetAddress.substr(0,6)+'...';
+        });
+
+        let longestName = owners.map(o => o.name).sort((a,b) => b.length > a.length)[0];
+        let nameTargetLength = longestName > 9 ? longestName : 9;
+
         for (var i=0; i<displayTotal; i++) {
-          var oaAddress = addressFromBitcoinAddress(owners[i].address);
-          var name = addressBook.lookupName(oaAddress) || oaAddress;
-          hearResponse.send(name + ': ' + owners[i].asset_quantity);
+          let owner = owners[i];
+          let padding = '';
+
+          if (owner.name.length < nameTargetLength) {
+            let spaces = nameTargetLength - owner.name.length;
+            for (var ii=0; ii<spaces; ii++) { padding += ' '; }
+          }
+
+          hearResponse.send(`${owner.name}${padding} | ${owner.asset_quantity}`);
         }
+
         hearResponse.send(`${totalAssets} ${robotKeyword} total, owned by ${owners.length} addresses. details: https://www.coinprism.info/asset/${process.env.OA_ASSET_ID}/owners`);
       });
   });
 
   robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
     let user = hearResponse.message.user;
-    if (!robot.auth.isAdmin(user)) {
-      return;
-    }
 
-    var recipient = hearResponse.match[1];
-    var destination = addressBook.lookupAddress(recipient);
-    if(!destination) { return false; }
+    if (!robot.auth.isAdmin(user)) { return; }
 
-    var quantity = process.env.OA_DEFAULT_QUANTITY;
+    let recipient = hearResponse.match[1];
+    let destination = addressBook.lookupAddress(recipient);
+
+    if (!destination) { return false; }
+
+    let quantity = process.env.OA_DEFAULT_QUANTITY;
 
     sendKredits(destination, quantity, function(err, res, body) {
       if (err || res.statusCode !== 200) {
@@ -214,21 +236,23 @@ module.exports = function(robot) {
 
   robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\w+).*`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
+
     if (!robot.auth.isAdmin(user)) {
       hearResponse.reply('Sorry amigo, I\'m afraid I can not do that.');
       return;
     }
 
-    var recipient = hearResponse.match[2];
-    var destination = addressBook.lookupAddress(recipient);
-    if(!destination) {
+    let recipient = hearResponse.match[2];
+    let destination = addressBook.lookupAddress(recipient);
+
+    if (!destination) {
       hearResponse.reply("sorry, I don't know the address of " + recipient);
       return false;
     }
-    var quantity = hearResponse.match[1];
-    if(!quantity) { quantity = process.env.OA_DEFAULT_QUANTITY; }
 
-    if(process.env.OA_MAX_QUANTITY && quantity > process.env.OA_MAX_QUANTITY) {
+    let quantity = hearResponse.match[1] || process.env.OA_DEFAULT_QUANTITY;
+
+    if (process.env.OA_MAX_QUANTITY && quantity > process.env.OA_MAX_QUANTITY) {
       robot.logger.info("quantity exceeds maximum. ignoring");
       hearResponse.reply("oh, that's a bit too much, isn't it?");
       return false;
@@ -237,15 +261,15 @@ module.exports = function(robot) {
     console.log("sending " + quantity + " to: " + recipient);
 
     sendKredits(destination, quantity, function(err, res, body) {
-      if(err || res.statusCode !== 200) {
+      if (err || res.statusCode !== 200) {
         console.log(err);
         console.log(body);
-        var error = JSON.parse(body);
-        hearResponse.send("damn, something is wrong with the asset server: " + error.message);
+        let error = JSON.parse(body);
+        hearResponse.send("Something is wrong with the asset server: " + error.message);
         return false;
       }
-      var tx = JSON.parse(body);
-      hearResponse.reply(`OK, done! (transaction should be propagated in a bit: https://www.coinprism.info/tx/${tx.hash} )`);
+      let tx = JSON.parse(body);
+      hearResponse.reply(`OK, done! (transaction should appear soon: https://www.coinprism.info/tx/${tx.hash} )`);
     });
 
   });
@@ -253,20 +277,19 @@ module.exports = function(robot) {
   function sendKredits(destination, quantity, cb) {
     console.log("sending " + quantity + " to: " + destination);
 
-    var params = {
+    let params = {
       "from": process.env.OA_ASSET_FROM_ADDRESS,
       "to": destination,
       "asset_id": process.env.OA_ASSET_ID,
       "amount": quantity
     };
 
-    console.log(params);
     robot.http(process.env.OA_SERVER_URL + '/send_asset')
       .header('Content-Type', 'application/json')
       .auth(process.env.OA_SERVER_USERNAME, process.env.OA_SERVER_PASSWORD)
       .query(params).post()(function(err, res, body) {
         if(err || res.statusCode !== 200) {
-          console.log("sending assets failed");
+          console.log("sending assets failed", params);
         }
         console.log(body);
 
