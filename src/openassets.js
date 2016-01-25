@@ -69,9 +69,18 @@ module.exports = function(robot) {
       if (Object.keys(this.getContent()).length === 0) {
         return `No entries in addressbook yet. Use "${robotKeyword} address add [name] [address]" to add one.`;
       } else {
-        let content = this.getContent();
-        let names = Object.keys(content);
-        return names.map(name => `${name}: ${content[name]}`);
+        let content      = this.getContent();
+        let names        = Object.keys(content);
+        let targetLength = names.sort((a,b) => b.length > a.length)[0].length;
+        let padding      = '';
+
+        return names.map(name => {
+          if (name.length < targetLength) {
+            let spaces = targetLength - name.length;
+            for (var i=0; i<spaces; i++) { padding += ' '; }
+          }
+          return `${name}${padding} | ${content[name]}`;
+        });
       }
     },
 
@@ -195,7 +204,7 @@ module.exports = function(robot) {
         });
 
         let longestName = owners.map(o => o.name).sort((a,b) => b.length > a.length)[0];
-        let nameTargetLength = longestName > 9 ? longestName : 9;
+        let nameTargetLength = longestName.length > 9 ? longestName.length : 9;
 
         for (var i=0; i<displayTotal; i++) {
           let owner = owners[i];
