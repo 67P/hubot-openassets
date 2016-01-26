@@ -6,7 +6,7 @@ to contributors of the [Kosmos](https://kosmos.org) open source project.
 
 The script contains addressbook functionality so you can send assets to a
 nickname instead of an address. For example, after adding an entry via `kredits
-addressbook add derbumi akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H` you can send
+address add derbumi akDWac1wFCFtaF2omEZ5KLTPMMPS4C5s89H` you can send
 kredits to that user using a simple `kredits send 100 to derbumi`.
 
 Listing/showing assets and balances works without an additional server. Sending
@@ -31,9 +31,9 @@ running together with [bitcoind](https://github.com/bitcoin/bitcoin) on a server
 
 | Key | Description |
 | --- | ----------- |
-| `<keyword> addressbook add <name> <address>` | ... |
-| `<keyword> addressbook delete <name>` | ... |
-| `<keyword> addressbook list` | ... |
+| `<keyword> address add <name> <address>` | ... |
+| `<keyword> address delete <name>` | ... |
+| `<keyword> address list` | ... |
 | `<keyword> show <name>` | ... |
 | `<keyword> list` | ... |
 | `<keyword> send [amount] to <name>` | ... |
