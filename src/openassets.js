@@ -200,11 +200,11 @@ module.exports = function(robot) {
 
           owner.assetAddress = addressFromBitcoinAddress(owner.address);
           owner.name         = addressBook.lookupName(owner.assetAddress) ||
-                               owner.assetAddress.substr(0,6)+'...';
+                               owner.assetAddress.substr(0,8);
         });
 
         let longestName = owners.map(o => o.name).sort((a,b) => b.length > a.length)[0];
-        let nameTargetLength = longestName.length > 9 ? longestName.length : 9;
+        let nameTargetLength = longestName.length > 8 ? longestName.length : 8;
 
         for (var i=0; i<displayTotal; i++) {
           let owner = owners[i];
