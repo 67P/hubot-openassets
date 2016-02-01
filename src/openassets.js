@@ -72,9 +72,9 @@ module.exports = function(robot) {
         let content      = this.getContent();
         let names        = Object.keys(content);
         let targetLength = names.sort((a,b) => b.length > a.length)[0].length;
-        let padding      = '';
 
-        return names.map(name => {
+        return names.sort().map(name => {
+          let padding = '';
           if (name.length < targetLength) {
             let spaces = targetLength - name.length;
             for (var i=0; i<spaces; i++) { padding += ' '; }
