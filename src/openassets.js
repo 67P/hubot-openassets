@@ -243,7 +243,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\w+).*`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\.+)\\s?.*`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
 
     if (!robot.auth.isAdmin(user)) {
