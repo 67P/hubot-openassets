@@ -26,6 +26,7 @@ running together with [bitcoind](https://github.com/bitcoin/bitcoin) on a server
 | `OA_SERVER_USERNAME` | Username for server basic auth |
 | `OA_SERVER_PASSWORD` | Password for server basic auth |
 | `OA_MAX_QUANTITY` (optional) | Maximum quantity of assets that can be transferred |
+| `OA_PLUSPLUS_ROOMS` (optional) | comma seperated list of rooms that should have the ++ send feature enabled. (note: include the # for IRC) |
 
 ## Commands
 
