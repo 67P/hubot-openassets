@@ -169,7 +169,7 @@ module.exports = function(robot) {
     return Base58.encode(btcBuff.buffer());
   }
 
-  robot.hear(new RegExp(`${robotKeyword} show (.+)`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} show (\\S+)`, 'i'), function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
         let msg = `${hearResponse.match[1]} has ${totalBalanceOfAsset(assetDetails)} ${robotKeyword}`;
@@ -243,7 +243,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (.+)\\s?`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\S+)`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
 
     if (!robot.auth.isAdmin(user)) {
