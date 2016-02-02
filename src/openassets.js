@@ -97,7 +97,7 @@ module.exports = function(robot) {
     }
   };
 
-  robot.hear(new RegExp(`${robotKeyword} address (add|remove|list)\\s*([a-zA-Z0-9_\-]*)\\s*([a-zA-Z0-9_\-]*)`, 'i'), function(res) {
+  robot.hear(new RegExp(`^${robotKeyword} address (add|remove|list)\\s*([a-zA-Z0-9_\-]*)\\s*([a-zA-Z0-9_\-]*)`, 'i'), function(res) {
     let command = res.match[1];
     let nick    = res.match[2];
     let address = res.match[3];
@@ -169,7 +169,7 @@ module.exports = function(robot) {
     return Base58.encode(btcBuff.buffer());
   }
 
-  robot.hear(new RegExp(`${robotKeyword} show (\\S+)`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`^${robotKeyword} show (\\S+)`, 'i'), function(hearResponse) {
     balanceOf(hearResponse.match[1], function(assetDetails) {
       if (assetDetails) {
         let msg = `${hearResponse.match[1]} has ${totalBalanceOfAsset(assetDetails)} ${robotKeyword}`;
@@ -180,7 +180,7 @@ module.exports = function(robot) {
     });
   });
 
-  robot.hear(new RegExp(`${robotKeyword} list`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`^${robotKeyword} list`, 'i'), function(hearResponse) {
     let assetUrl = 'https://api.coinprism.com/v1/assets/' + process.env.OA_ASSET_ID + '/owners';
 
     robot.http(assetUrl).header('Content-Type', 'application/json')
@@ -243,7 +243,7 @@ module.exports = function(robot) {
 
   });
 
-  robot.hear(new RegExp(`${robotKeyword} send (\\d*)\\s?to (\\S+)`, 'i'), function(hearResponse) {
+  robot.hear(new RegExp(`^${robotKeyword} send (\\d*)\\s?to (\\S+)`, 'i'), function(hearResponse) {
     let user = hearResponse.message.user;
 
     if (!robot.auth.isAdmin(user)) {
