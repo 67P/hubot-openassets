@@ -38,4 +38,4 @@ running together with [bitcoind](https://github.com/bitcoin/bitcoin) on a server
 | `<keyword> show <name>` | ... |
 | `<keyword> list` | ... |
 | `<keyword> send [amount] to <name>` | ... |
-| `<name>++` | send thed default amount to <name>. Disabled by default see OA_PLUSPLUS_ROOMS config |
+| `<name>++` | Send the default amount to <name>. Disabled by default, see OA_PLUSPLUS_ROOMS config. |
