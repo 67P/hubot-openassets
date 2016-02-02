@@ -225,15 +225,13 @@ module.exports = function(robot) {
 
   robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
     let user = hearResponse.message.user;
-    if (!robot.auth.isAdmin(user)) { return; }
-    if (typeof process.env.OA_PLUSPLUS_ROOMS != undefined && process.env.OA_PLUSPLUS_ROOMS.split(',').map(e => e.trim()).indexOf(hearResponse.message.room) == -1) { return; }
+    if (!robot.auth.isAdmin(user) || !isPlusPlusEnabledFor(hearResponse.message.room) ) { return; }
 
     let recipient = hearResponse.match[1];
     let destination = addressBook.lookupAddress(recipient);
+    let quantity = process.env.OA_DEFAULT_QUANTITY;
 
     if (!destination) { return false; }
-
-    let quantity = process.env.OA_DEFAULT_QUANTITY;
 
     sendKredits(destination, quantity, function(err, res, body) {
       if (err || res.statusCode !== 200) {
@@ -283,6 +281,12 @@ module.exports = function(robot) {
     });
 
   });
+
+  function isPlusPlusEnabledFor(room) {
+    // true if room name is in the comma seperated list of the OA_PLUSPLUS_ROOMS env variable
+    return typeof process.env.OA_PLUSPLUS_ROOMS === 'undefined'
+      || process.env.OA_PLUSPLUS_ROOMS.split(',').map(e => e.trim()).indexOf(room) !== -1;
+  }
 
   function sendKredits(destination, quantity, cb) {
     console.log("sending " + quantity + " to: " + destination);
