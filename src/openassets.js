@@ -18,6 +18,7 @@
 //   OA_SERVER_USERNAME: Username for server basic auth
 //   OA_SERVER_PASSWORD: Password for server basic auth
 //   OA_MAX_QUANTITY (optional): Maximum quantity of assets that can be transferred
+//   OA_PLUSPLUS_ROOMS (optional): in which room the ++ should be enabled
 //
 // Authors:
 //   Michael Bumann <hello@michaelbumann.com>
@@ -224,8 +225,8 @@ module.exports = function(robot) {
 
   robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
     let user = hearResponse.message.user;
-
     if (!robot.auth.isAdmin(user)) { return; }
+    if (process.env.OA_PLUSPLUS_ROOMS != undefined && process.env.OA_PLUSPLUS_ROOMS.split(',').map(function(e) { return e.trim() }).indexOf(hearResponse.message.room) == -1) { return; }
 
     let recipient = hearResponse.match[1];
     let destination = addressBook.lookupAddress(recipient);
