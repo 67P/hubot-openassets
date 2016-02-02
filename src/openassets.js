@@ -283,9 +283,11 @@ module.exports = function(robot) {
   });
 
   function isPlusPlusEnabledFor(room) {
+    if( typeof process.env.OA_PLUSPLUS_ROOMS === 'undefined') {
+      return false;
+    }
     // true if room name is in the comma seperated list of the OA_PLUSPLUS_ROOMS env variable
-    return typeof process.env.OA_PLUSPLUS_ROOMS === 'undefined'
-      || process.env.OA_PLUSPLUS_ROOMS.split(',').map(e => e.trim()).indexOf(room) !== -1;
+    return process.env.OA_PLUSPLUS_ROOMS.split(',').map(e => e.trim()).indexOf(room) !== -1;
   }
 
   function sendKredits(destination, quantity, cb) {
