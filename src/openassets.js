@@ -226,7 +226,7 @@ module.exports = function(robot) {
   robot.hear(/(\w+)\s?\+\+/i, function(hearResponse) {
     let user = hearResponse.message.user;
     if (!robot.auth.isAdmin(user)) { return; }
-    if (process.env.OA_PLUSPLUS_ROOMS != undefined && process.env.OA_PLUSPLUS_ROOMS.split(',').map(function(e) { return e.trim() }).indexOf(hearResponse.message.room) == -1) { return; }
+    if (typeof process.env.OA_PLUSPLUS_ROOMS != undefined && process.env.OA_PLUSPLUS_ROOMS.split(',').map(e => e.trim()).indexOf(hearResponse.message.room) == -1) { return; }
 
     let recipient = hearResponse.match[1];
     let destination = addressBook.lookupAddress(recipient);
